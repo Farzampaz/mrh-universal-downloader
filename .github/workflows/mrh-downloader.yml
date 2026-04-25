@@ -1,8 +1,8 @@
-name: MRH Universal Downloader v1.0.1
+name: Simple Downloader
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -11,30 +11,33 @@ permissions:
 jobs:
   download:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
+    - uses: actions/checkout@v4
+    
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-
+    
     - name: Install yt-dlp
       run: |
-        pip install --upgrade pip
         pip install yt-dlp
         yt-dlp --version
-
-    - name: Run Downloader
+    
+    - name: Run Download
       run: python3 scripts/mrh_downloader.py
-
-    - name: Commit files
+    
+    - name: List files
       run: |
-        git config user.name "MRH Bot"
+        echo "=== ALL FILES IN REPO ==="
+        find . -type f -not -path "./.git/*" | sort
+        echo "========================="
+    
+    - name: Commit
+      run: |
+        git config user.name "Bot"
         git config user.email "bot@local"
         git add downloads/ || true
-        git diff --staged --quiet || git commit -m "MRH: Add downloads [skip ci]"
+        git add *.mp4 *.webm *.mp3 2>/dev/null || true
+        git diff --staged --quiet || git commit -m "Add downloads [skip ci]"
         git push || true
