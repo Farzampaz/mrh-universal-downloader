@@ -1,8 +1,8 @@
-name: Final MRH Downloader
+name: MRH Universal Downloader
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   workflow_dispatch:
 
 permissions:
@@ -14,39 +14,102 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Download with yt-dlp directly
+      - name: Check commit message
+        id: check
         run: |
-          # Create downloads folder
-          mkdir -p downloads/youtube
+          MSG=$(git log -1 --pretty=%B)
+          echo "📝 Message: $MSG"
           
-          # Go to downloads folder
-          cd downloads/youtube
-          
-          # Get commit message
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          echo "Commit: $COMMIT_MSG"
-          
-          # Check for YouTube command
-          if [[ "$COMMIT_MSG" == *"dl-yt:"* ]]; then
-            # Extract URL
-            URL=$(echo "$COMMIT_MSG" | grep -oP 'dl-yt:\s*\Khttps?://[^\s]+')
-            echo "Downloading: $URL"
+          if [[ "$MSG" =~ ^dl:\  ]]; then
+            URLS=$(echo "$MSG" | sed 's/^dl: //')
+            echo "urls=$URLS" >> $GITHUB_OUTPUT
+            echo "mode=single" >> $GITHUB_OUTPUT
+            echo "✅ Single download mode"
             
-            # Download using docker (most reliable method)
-            docker run --rm -v $(pwd):/downloads mikenye/youtube-dl $URL
+          elif [[ "$MSG" =~ ^dl-zip:\  ]]; then
+            URLS=$(echo "$MSG" | sed 's/^dl-zip: //')
+            echo "urls=$URLS" >> $GITHUB_OUTPUT
+            echo "mode=zip" >> $GITHUB_OUTPUT
+            echo "✅ ZIP mode"
+            
+          elif [[ "$MSG" =~ ^dl-gh:\  ]]; then
+            URL=$(echo "$MSG" | sed 's/^dl-gh: //')
+            echo "url=$URL" >> $GITHUB_OUTPUT
+            echo "mode=github" >> $GITHUB_OUTPUT
+            echo "✅ GitHub mode"
+            
+          elif [[ "$MSG" =~ ^dl-extract:\  ]]; then
+            URL=$(echo "$MSG" | sed 's/^dl-extract: //')
+            echo "url=$URL" >> $GITHUB_OUTPUT
+            echo "mode=extract" >> $GITHUB_OUTPUT
+            echo "✅ Extract mode"
+            
+          elif [[ "$MSG" == "dl-stop" ]]; then
+            echo "mode=stop" >> $GITHUB_OUTPUT
+            echo "🛑 Stop command"
+          else
+            echo "mode=none" >> $GITHUB_OUTPUT
+            echo "ℹ️ No valid command"
           fi
           
-          # Go back
-          cd ../..
+      - name: Download files
+        if: steps.check.outputs.mode == 'single'
+        run: |
+          mkdir -p downloads
+          for URL in ${{ steps.check.outputs.urls }}; do
+            FILENAME=$(basename "$URL" | cut -d '?' -f1)
+            [ -z "$FILENAME" ] && FILENAME="file_$(date +%H%M%S)"
+            echo "⬇️ Downloading: $FILENAME"
+            curl -L -o "downloads/$FILENAME" "$URL"
+          done
           
-          # List downloaded files
-          echo "=== Downloaded files ==="
-          find downloads -type f -ls
+      - name: Download and ZIP
+        if: steps.check.outputs.mode == 'zip'
+        run: |
+          mkdir -p downloads temp_dl
+          cd temp_dl
+          for URL in ${{ steps.check.outputs.urls }}; do
+            FILENAME=$(basename "$URL" | cut -d '?' -f1)
+            [ -z "$FILENAME" ] && FILENAME="file_$(date +%H%M%S)"
+            echo "⬇️ Downloading: $FILENAME"
+            curl -L -o "$FILENAME" "$URL"
+          done
+          ZIP_NAME="archive_$(date +%Y%m%d_%H%M%S).zip"
+          zip -r "../downloads/$ZIP_NAME" .
+          cd ..
+          rm -rf temp_dl
+          echo "✅ Created: $ZIP_NAME"
           
-      - name: Commit files
+      - name: Download from GitHub
+        if: steps.check.outputs.mode == 'github'
+        run: |
+          mkdir -p downloads/github
+          URL="${{ steps.check.outputs.url }}"
+          FILENAME=$(basename "$URL" | cut -d '?' -f1)
+          echo "⬇️ Downloading from GitHub: $FILENAME"
+          curl -L -o "downloads/github/$FILENAME" "$URL"
+          
+      - name: Download and Extract
+        if: steps.check.outputs.mode == 'extract'
+        run: |
+          mkdir -p downloads/extracted
+          URL="${{ steps.check.outputs.url }}"
+          FILENAME=$(basename "$URL" | cut -d '?' -f1)
+          echo "⬇️ Downloading: $FILENAME"
+          curl -L -o "$FILENAME" "$URL"
+          unzip -o "$FILENAME" -d "downloads/extracted/"
+          rm "$FILENAME"
+          echo "✅ Extracted to: downloads/extracted/"
+          
+      - name: Show results
+        run: |
+          echo "=== 📁 DOWNLOADED FILES ==="
+          find downloads -type f 2>/dev/null || echo "No files"
+          
+      - name: Commit
         run: |
           git config user.name "MRH Bot"
-          git config user.email "bot@local"
+          git config user.email "mrh@local"
           git add downloads/ || true
-          git diff --staged --quiet || git commit -m "Add downloads [skip ci]"
+          git diff --staged --quiet || git commit -m "MRH: Downloads [skip ci]"
           git push || true
