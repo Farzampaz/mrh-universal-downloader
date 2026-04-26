@@ -1,45 +1,30 @@
 #!/usr/bin/env python3
-import os
-import re
-import subprocess
-from pathlib import Path
+"""
+╔════════════════════════════════════════════════════════════════════════════╗
+║  ███╗   ███╗██████╗ ██╗  ██╗                                              ║
+║  ████╗ ████║██╔══██╗██║  ██║                                              ║
+║  ██╔████╔██║██████╔╝███████║                                              ║
+║  ██║╚██╔╝██║██╔══██╗██╔══██║                                              ║
+║  ██║ ╚═╝ ██║██║  ██║██║  ██║                                              ║
+║  ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝                                              ║
+║                                                                            ║
+║                MRH Universal Downloader v1.0.2                            ║
+║          YouTube | Instagram | GitHub | Direct Links                      ║
+║                    coded by: MRH                                          ║
+║              For people in isolated internet countries                   ║
+╚════════════════════════════════════════════════════════════════════════════╝
+"""
 
-print("🚀 MRH Simple Downloader v1.0")
+print("""
+✅ MRH Universal Downloader is running via GitHub Actions.
+📝 Just write one of these commands in your commit message:
 
-# Get commit message
-msg = subprocess.run(['git', 'log', '-1', '--pretty=%B'], capture_output=True, text=True).stdout
-print(f"📝 Message: {msg[:100]}")
+   📹 dl-yt: URL              - Download YouTube video
+   🎵 dl-yt: URL (mp3)        - Download YouTube audio
+   📸 dl-ig: URL              - Download Instagram post/reel
+   🐙 dl-gh: URL              - Download from GitHub release
+   📁 dl: URL1 URL2           - Download direct links
+   🛑 dl-stop                  - Emergency stop
 
-# Check for YouTube
-if 'dl-yt:' in msg:
-    # Extract URL
-    match = re.search(r'dl-yt:\s*([^\s]+)', msg)
-    if match:
-        url = match.group(1)
-        # Remove (mp3) if present
-        url = url.replace('(mp3)', '').strip()
-        
-        print(f"🎬 Downloading: {url}")
-        
-        # Create directory
-        Path("downloads/youtube").mkdir(parents=True, exist_ok=True)
-        
-        # SIMPLE DOWNLOAD - let yt-dlp work in its own default way
-        # Just let it save files wherever it wants, we'll find them
-        result = subprocess.run(['yt-dlp', url], capture_output=True, text=True)
-        
-        print(f"📋 Return code: {result.returncode}")
-        
-        # Find the downloaded file
-        print("\n🔍 Searching for downloaded file...")
-        for root, dirs, files in os.walk('.'):
-            for file in files:
-                if file.endswith(('.mp4', '.webm', '.mkv', '.mp3', '.m4a')):
-                    size = os.path.getsize(os.path.join(root, file)) / (1024*1024)
-                    print(f"✅ Found: {file} ({size:.2f} MB)")
-                    # Move to youtube folder
-                    import shutil
-                    shutil.move(os.path.join(root, file), f"downloads/youtube/{file}")
-                    print(f"📁 Moved to downloads/youtube/{file}")
-        
-        print("\n✅ Done")
+📁 Downloaded files will appear in the 'downloads' folder.
+""")
