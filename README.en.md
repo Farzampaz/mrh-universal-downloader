@@ -1,16 +1,11 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.0.1-red?style=for-the-badge&logo=github">
+  <img src="https://img.shields.io/badge/Version-1.0.2-red?style=for-the-badge&logo=github">
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge&logo=opensourceinitiative">
   <img src="https://img.shields.io/badge/Made%20by-MRH-green?style=for-the-badge&logo=github">
 </p>
 
 <h1 align="center">🌍 MRH Universal Downloader</h1>
-<h3 align="center">Download anything from anywhere - Just by writing a commit message</h3>
-<p align="center">
-  <b>For people in countries with isolated, heavily censored internet</b>
-</p>
-
-<br>
+<h3 align="center">Download from Instagram, GitHub and any site - Just by writing a commit message</h3>
 
 <p align="center">
   <b>✊ Access to information is a human right</b>
@@ -36,25 +31,20 @@
 
 | If you live in a country where... | This tool is for you |
 |----------------------------------|---------------------|
-| 🔴 YouTube is blocked | ✅ Download videos & music |
-| 🔴 Instagram doesn't work | ✅ Download photos & videos |
-| 🔴 Internet is heavily censored | ✅ Download from any site |
-| 🔴 Can't download software | ✅ Download apps & games |
-| 🔴 No access to real news | ✅ Download news content |
+| 🔴 Instagram doesn't work | ✅ Download photos, videos, reels |
+| 🔴 Can't download software | ✅ Download from GitHub releases |
+| 🔴 Internet is heavily censored | ✅ Download from any site with direct link |
 
 ---
 
 ## ⚙️ How it works
 
-**The process is simple:**
-
 1. You write a link in a commit message on GitHub
-2. GitHub servers (in free countries) request the file from the target site
-3. The target site sends the file to GitHub servers
-4. GitHub saves the file in your repository
-5. You download the file from GitHub to your computer or phone
+2. GitHub servers (in free countries) request the file
+3. The file is saved in your repository
+4. You download the file from GitHub to your device
 
-**🔑 Result: No VPN, no proxy, just a free GitHub account**
+**🔑 No VPN, no proxy, just a free GitHub account**
 
 ---
 
@@ -96,7 +86,7 @@
 2. See the latest workflow run
 3. Click it - wait for green checkmark ✅
 4. Go back to **Code** tab
-5. Open **downloads** folder
+5. Open **downloads/direct** folder
 6. ✅ You'll see `sample.txt` there
 
 ### Step 6: Transfer File to Your Device
@@ -110,31 +100,21 @@
 - Install **GitHub** app from app store
 - Log in to your account
 - Go to `MRH-Universal-Downloader` repository
-- Open `downloads` folder
+- Open `downloads/direct` folder
 - Tap file → **Download**
 - File saves to your phone storage
-
-**Quick Method (Direct Link):**
-- Click on file in GitHub
-- Click **Raw**
-- Copy the opened URL
-- Open URL in mobile browser → File downloads
 
 🎉 **Congratulations! You did your first download.**
 
 ---
 
-## 📝 Complete Command List
+## 📝 Complete Command List (Guaranteed to work)
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `dl: URL1 URL2` | Simple file download | `dl: https://example.com/file.zip` |
-| `dl-yt: URL` | Download YouTube video | `dl-yt: https://youtu.be/VIDEO_ID` |
-| `dl-yt: URL (mp3)` | Download YouTube audio only | `dl-yt: https://youtu.be/ID (mp3)` |
-| `dl-zip: URL1 URL2` | Download multiple files as ZIP | `dl-zip: https://example.com/1.jpg https://example.com/2.jpg` |
-| `dl-gh: URL` | Download from GitHub | `dl-gh: https://github.com/user/repo/releases/download/v1/app.zip` |
-| `dl-extract: URL.zip` | Download ZIP and auto-extract | `dl-extract: https://example.com/archive.zip` |
-| `dl-chunk: URL` | Download large files (>2GB) | `dl-chunk: https://example.com/bigfile.zip` |
+| `dl-ig: URL` | Download from Instagram (post, reel, photo, video) | `dl-ig: https://www.instagram.com/reel/xxxxx` |
+| `dl-gh: URL` | Download from GitHub (releases and files) | `dl-gh: https://github.com/user/repo/releases/download/v1/app.zip` |
+| `dl: URL1 URL2` | Direct download from any site (music, video, photo, software) | `dl: https://example.com/music.mp3 https://example.com/photo.jpg` |
 | `dl-stop` | Emergency stop | `dl-stop` |
 
 ---
@@ -142,17 +122,16 @@
 ## 🛡️ Rules & Fair Use
 
 ### ✅ Allowed (Fair Use)
-- Educational videos for personal learning
-- Open-source and free software
-- Music with Creative Commons license
+- Download public Instagram content
+- Download open-source and free software from GitHub
+- Download public files from any site
 - Personal file backups
 
 ### ❌ Forbidden (Violation)
 - Copyrighted movies, music, software without permission
-- Malware, violent, or illegal content
+- Malware or illegal content
 - Cryptocurrency mining
 - Excessive requests (abuse)
-- Bypassing trade sanctions
 
 ### ⚠️ Consequences
 - Temporary or permanent GitHub account suspension
@@ -167,20 +146,28 @@
 A: Yes, 100% free. Only a GitHub account needed.
 
 **Q: File size limit?**  
-A: Max 20GB per run. Use `dl-chunk` for larger files.
+A: Max 20GB per run.
 
-**Q: How long does it take?**  
-A: Usually 1-5 minutes depending on file size.
+**Q: Why no YouTube support?**  
+A: Technical limitation on GitHub servers. Will be added if resolved.
+
+**Q: Why does Instagram sometimes fail?**  
+A: Instagram has rate limits. Wait a few hours and try again.
 
 **Q: How often to refresh fork?**  
 A: Every 2-3 months or when `downloads` folder is full. To delete:  
 `Settings` → `Danger Zone` → `Delete this repository` → Then fork again.
 
-**Q: Will GitHub ban me?**  
-A: No if you follow rules and download legal content.
-
 **Q: How to know download is complete?**  
 A: Check `Actions` tab. Green checkmark ✅ means done.
+
+---
+
+## 📞 About Creator
+
+| Name | Mission | Belief |
+|------|---------|--------|
+| **MRH** | Help people in isolated internet countries | Access to information = Human right |
 
 ---
 
@@ -192,6 +179,6 @@ Free to use, copy, modify, distribute with credit to MRH.
 ---
 
 <p align="center">
-<b>MRH Universal Downloader v1.0.1</b><br>
+<b>MRH Universal Downloader v1.0.2</b><br>
 <b>Made with ❤️ for internet freedom</b>
 </p>
