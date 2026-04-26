@@ -22,10 +22,12 @@ jobs:
       with:
         python-version: '3.11'
         
-    - name: Install yt-dlp
+    - name: Install tools
       run: |
-        pip install --upgrade yt-dlp
-        yt-dlp --version
+        # Install youtube-dl (works better than yt-dlp on GitHub Actions)
+        pip install youtube-dl
+        # Also install yt-dlp as fallback
+        pip install yt-dlp
         
     - name: Create folders
       run: |
@@ -41,20 +43,21 @@ jobs:
         echo "full=$MSG" >> $GITHUB_OUTPUT
         echo "📝 Commit: $MSG"
         
-    - name: Download from YouTube
+    - name: Download from YouTube (using youtube-dl)
       if: contains(steps.msg.outputs.full, 'dl-yt:')
       run: |
         URL=$(echo "${{ steps.msg.outputs.full }}" | grep -oP 'dl-yt:\s*\Khttps?://[^\s]+' | head -1)
+        URL=$(echo "$URL" | sed 's/(mp3)//g' | sed 's/(mp4)//g' | xargs)
         echo "🎬 YouTube: $URL"
         
         cd downloads/youtube
         
         if [[ "${{ steps.msg.outputs.full }}" == *"(mp3)"* ]]; then
           echo "🎵 Downloading audio only..."
-          yt-dlp -x --audio-format mp3 --audio-quality 0 --no-playlist "$URL"
+          youtube-dl -x --audio-format mp3 --audio-quality 0 "$URL" || yt-dlp -x --audio-format mp3 "$URL"
         else
           echo "🎥 Downloading video..."
-          yt-dlp -f bestvideo[height<=720]+bestaudio/best[height<=720] --merge-output-format mp4 --no-playlist "$URL"
+          youtube-dl -f "best[height<=720]" "$URL" || yt-dlp -f "best[height<=720]" "$URL"
         fi
         
         cd ../..
@@ -67,7 +70,7 @@ jobs:
         echo "📸 Instagram: $URL"
         
         cd downloads/instagram
-        yt-dlp --no-playlist "$URL"
+        yt-dlp --no-playlist "$URL" || youtube-dl --no-playlist "$URL"
         cd ../..
         echo "✅ Instagram download completed"
         
@@ -85,7 +88,7 @@ jobs:
     - name: Download direct link
       if: contains(steps.msg.outputs.full, 'dl:') && !contains(steps.msg.outputs.full, 'dl-yt:') && !contains(steps.msg.outputs.full, 'dl-ig:') && !contains(steps.msg.outputs.full, 'dl-gh:')
       run: |
-        URLS=$(echo "${{ steps.msg.outputs.full }}" | grep -oP 'dl:\s*\K.*')
+        URLS=$(echo "${{ steps.msg.outputs.full }}" | sed 's/^dl: //')
         
         cd downloads/direct
         
@@ -117,7 +120,7 @@ jobs:
     - name: Commit files
       run: |
         git config user.name "MRH Downloader"
-        git config user.email "mrh@downloader.local"
+        git config.user.email "mrh@downloader.local"
         git add downloads/ || true
         git diff --staged --quiet || git commit -m "MRH: Downloads completed [skip ci]"
         git push || true
