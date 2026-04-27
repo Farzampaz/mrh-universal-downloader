@@ -1,0 +1,15 @@
+{
+  "version": "1.4.1",
+  "notes": "GUI-обёртка для zapret-win-bundle от bol-van. Смотри ассеты ниже.",
+  "pub_date": "2026-04-24T00:44:08.390Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRzNpTkhJNWtiTnBvaklKcmx6ZE42Qm54QmlxN0hCVi9QbXFGN1JuRVBiV0s3Ym1WbGlPaXRSOTZhVWt2VkZNMklkTjRIbi9KNTd1R1lSREwwMjJERWFLYjFBRWczdkFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2OTkxNDQ1CWZpbGU6WmFwcmV0IEludGVyYWN0aXZlXzEuNC4xX3g2NC1zZXR1cC5leGUKMEJaYVBjUTdTVEZORU16MlJVZitzUjlKSThHUmQ2bWVBdGpQR2p4QWFsOUhXWmx1alJhQnFPTlkzT1IyVmpIL0RHcitjQW8zZHNoY2VPZGZ5eE04QVE9PQo=",
+      "url": "https://github.com/Noktomezo/ZapretInteractive/releases/download/v1.4.1/Zapret.Interactive_1.4.1_x64-setup.exe"
+    },
+    "windows-x86_64-nsis": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRzNpTkhJNWtiTnBvaklKcmx6ZE42Qm54QmlxN0hCVi9QbXFGN1JuRVBiV0s3Ym1WbGlPaXRSOTZhVWt2VkZNMklkTjRIbi9KNTd1R1lSREwwMjJERWFLYjFBRWczdkFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2OTkxNDQ1CWZpbGU6WmFwcmV0IEludGVyYWN0aXZlXzEuNC4xX3g2NC1zZXR1cC5leGUKMEJaYVBjUTdTVEZORU16MlJVZitzUjlKSThHUmQ2bWVBdGpQR2p4QWFsOUhXWmx1alJhQnFPTlkzT1IyVmpIL0RHcitjQW8zZHNoY2VPZGZ5eE04QVE9PQo=",
+      "url": "https://github.com/Noktomezo/ZapretInteractive/releases/download/v1.4.1/Zapret.Interactive_1.4.1_x64-setup.exe"
+    }
+  }
+}
