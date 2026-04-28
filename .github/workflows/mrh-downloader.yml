@@ -1,4 +1,4 @@
-name: MRH Universal Downloader
+name: MRH Universal Downloader v2.0
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 360
     
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v4
       
     - name: Setup Python
@@ -22,7 +22,7 @@ jobs:
       with:
         python-version: '3.11'
         
-    - name: Install yt-dlp
+    - name: Install tools
       run: |
         pip install --upgrade yt-dlp
         yt-dlp --version
@@ -33,7 +33,6 @@ jobs:
         mkdir -p downloads/instagram
         mkdir -p downloads/github
         mkdir -p downloads/direct
-        mkdir -p logs
         
     - name: Get commit message
       id: msg
@@ -43,32 +42,30 @@ jobs:
         echo "📝 Commit: $MSG"
         
     # ============================================
-    # YOUTUBE DOWNLOAD (با هدر واقعی مرورگر)
+    # 1. YOUTUBE (ساده و بی‌دردسر - کیفیت پایین)
     # ============================================
     - name: Download from YouTube
       if: contains(steps.msg.outputs.full, 'dl-yt:')
       run: |
         URL=$(echo "${{ steps.msg.outputs.full }}" | grep -oP 'dl-yt:\s*\Khttps?://[^\s]+' | head -1)
+        URL=$(echo "$URL" | sed 's/(mp3)//g' | sed 's/(mp4)//g' | xargs)
         echo "🎬 YouTube: $URL"
         
         cd downloads/youtube
         
         if [[ "${{ steps.msg.outputs.full }}" == *"(mp3)"* ]]; then
-          echo "🎵 Downloading audio only..."
-          yt-dlp --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-                 -x --audio-format mp3 --audio-quality 0 --retries 5 --no-playlist "$URL"
+          echo "🎵 Downloading audio (MP3)..."
+          yt-dlp -x --audio-format mp3 --audio-quality 2 --no-playlist --retries 5 "$URL"
         else
-          echo "🎥 Downloading video..."
-          yt-dlp --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-                 -f bestvideo[height<=720]+bestaudio/best[height<=720] \
-                 --merge-output-format mp4 --retries 5 --no-playlist "$URL"
+          echo "🎥 Downloading video (lowest quality)..."
+          yt-dlp -f "worst[ext=mp4]" --no-playlist --retries 5 "$URL"
         fi
         
         cd ../..
-        echo "✅ YouTube download completed"
+        echo "✅ YouTube done"
         
     # ============================================
-    # INSTAGRAM DOWNLOAD (با تاخیر بین درخواست‌ها)
+    # 2. INSTAGRAM
     # ============================================
     - name: Download from Instagram
       if: contains(steps.msg.outputs.full, 'dl-ig:')
@@ -77,12 +74,12 @@ jobs:
         echo "📸 Instagram: $URL"
         
         cd downloads/instagram
-        yt-dlp --sleep-requests 2 --no-playlist "$URL"
+        yt-dlp --no-playlist --retries 5 "$URL"
         cd ../..
-        echo "✅ Instagram download completed"
+        echo "✅ Instagram done"
         
     # ============================================
-    # GITHUB DOWNLOAD
+    # 3. GITHUB RELEASE
     # ============================================
     - name: Download from GitHub
       if: contains(steps.msg.outputs.full, 'dl-gh:')
@@ -93,49 +90,36 @@ jobs:
         cd downloads/github
         curl -L -O --retry 5 --retry-delay 2 "$URL"
         cd ../..
-        echo "✅ GitHub download completed"
+        echo "✅ GitHub done"
         
     # ============================================
-    # DIRECT LINK DOWNLOAD (با تلاش مجدد و بررسی موفقیت)
+    # 4. DIRECT LINK (هر سایت دیگر)
     # ============================================
     - name: Download direct link
       if: contains(steps.msg.outputs.full, 'dl:') && !contains(steps.msg.outputs.full, 'dl-yt:') && !contains(steps.msg.outputs.full, 'dl-ig:') && !contains(steps.msg.outputs.full, 'dl-gh:')
       run: |
-        URLS=$(echo "${{ steps.msg.outputs.full }}" | grep -oP 'dl:\s*\K.*')
+        URL=$(echo "${{ steps.msg.outputs.full }}" | grep -oP 'dl:\s*\Khttps?://[^\s]+' | head -1)
+        echo "📁 Direct: $URL"
         
         cd downloads/direct
+        FILENAME=$(basename "$URL" | cut -d '?' -f1)
+        [ -z "$FILENAME" ] && FILENAME="file_$(date +%H%M%S)"
         
-        for URL in $URLS; do
-          FILENAME=$(basename "$URL" | cut -d '?' -f1)
-          [ -z "$FILENAME" ] && FILENAME="file_$(date +%H%M%S)"
-          echo "⬇️ Downloading: $FILENAME from $URL"
-          
-          # دانلود با تلاش مجدد و بررسی موفقیت
-          if curl -L -o "$FILENAME" --retry 5 --retry-delay 2 --retry-max-time 120 --connect-timeout 30 "$URL"; then
-            FILE_SIZE=$(du -h "$FILENAME" | cut -f1)
-            echo "✅ Success: $FILENAME ($FILE_SIZE)"
-          else
-            echo "❌ Failed: $URL"
-            # ذخیره لینک خراب برای گزارش
-            echo "$URL" >> ../../logs/failed_links.txt
-            exit 1
-          fi
-        done
-        
+        curl -L -o "$FILENAME" --retry 5 --retry-delay 2 --connect-timeout 30 "$URL"
         cd ../..
-        echo "✅ Direct downloads completed"
+        echo "✅ Direct done"
         
     # ============================================
-    # STOP COMMAND
+    # 5. STOP
     # ============================================
     - name: Stop command
       if: contains(steps.msg.outputs.full, 'dl-stop')
       run: |
-        echo "🛑 Emergency stop activated"
+        echo "🛑 Emergency stop"
         exit 0
         
     # ============================================
-    # نمایش نتایج (با جزئیات بیشتر)
+    # 6. RESULTS
     # ============================================
     - name: Show results
       run: |
@@ -148,32 +132,17 @@ jobs:
           echo ""
           echo "📊 Total size: $(du -sh downloads | cut -f1)"
         else
-          echo "⚠️ No files found in downloads folder"
-          echo "📂 Directory structure:"
-          ls -la downloads/ 2>/dev/null || echo "downloads folder is empty or doesn't exist"
+          echo "⚠️ No files found"
         fi
         echo "=========================================="
         
     # ============================================
-    # ذخیره لاگ خطا (اگر دانلود失敗 شد)
-    # ============================================
-    - name: Save error log on failure
-      if: failure()
-      run: |
-        echo "=========================================="
-        echo "❌ DOWNLOAD FAILED - Saving error log"
-        echo "=========================================="
-        echo "Commit: ${{ steps.msg.outputs.full }}" > logs/error_$(date +%Y%m%d_%H%M%S).log
-        echo "Time: $(date)" >> logs/error_$(date +%Y%m%d_%H%M%S).log
-        echo "Failed at: $(pwd)" >> logs/error_$(date +%Y%m%d_%H%M%S).log
-        
-    # ============================================
-    # COMMIT FILES
+    # 7. COMMIT
     # ============================================
     - name: Commit files
       run: |
         git config user.name "MRH Downloader"
         git config user.email "mrh@downloader.local"
-        git add downloads/ logs/ || true
-        git diff --staged --quiet || git commit -m "MRH: Downloads completed [skip ci]"
+        git add downloads/ || true
+        git diff --staged --quiet || git commit -m "MRH: Downloads [skip ci]"
         git push || true
