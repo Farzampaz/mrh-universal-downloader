@@ -8,23 +8,23 @@
 ║  ██║ ╚═╝ ██║██║  ██║██║  ██║                                              ║
 ║  ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝                                              ║
 ║                                                                            ║
-║                MRH Universal Downloader v1.0.2                            ║
-║          YouTube | Instagram | GitHub | Direct Links                      ║
+║                MRH Universal Downloader v2.0                              ║
+║     YouTube | Instagram | GitHub | Direct Links                           ║
 ║                    coded by: MRH                                          ║
-║              For people in isolated internet countries                   ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 """
 
 print("""
-✅ MRH Universal Downloader is running via GitHub Actions.
-📝 Just write one of these commands in your commit message:
+✅ MRH Universal Downloader v2.0 is running!
 
-   📹 dl-yt: URL              - Download YouTube video
-   🎵 dl-yt: URL (mp3)        - Download YouTube audio
-   📸 dl-ig: URL              - Download Instagram post/reel
-   🐙 dl-gh: URL              - Download from GitHub release
-   📁 dl: URL1 URL2           - Download direct links
-   🛑 dl-stop                  - Emergency stop
+📝 Write one of these commands in your commit message:
 
-📁 Downloaded files will appear in the 'downloads' folder.
+   📹 dl-yt: URL           - Download YouTube video (low quality)
+   🎵 dl-yt: URL (mp3)     - Download YouTube audio (MP3)
+   📸 dl-ig: URL           - Download Instagram post/reel
+   🐙 dl-gh: URL           - Download from GitHub release
+   📁 dl: URL              - Direct download from any site
+   🛑 dl-stop              - Emergency stop
+
+📁 All files will appear in the 'downloads' folder.
 """)
