@@ -1,4 +1,4 @@
-name: MRH Universal Downloader v2.0
+name: MRH Universal Downloader
 
 on:
   push:
@@ -22,16 +22,12 @@ jobs:
       with:
         python-version: '3.11'
         
-    - name: Install yt-dlp with full features
-      uses: AnimMouse/setup-yt-dlp@v3
-      with:
-        aria2: true
-        ejs-node: true
-        ffmpeg: true
+    - name: Install yt-dlp (for Instagram)
+      run: |
+        pip install yt-dlp
         
     - name: Create folders
       run: |
-        mkdir -p downloads/youtube
         mkdir -p downloads/instagram
         mkdir -p downloads/github
         mkdir -p downloads/direct
@@ -44,90 +40,82 @@ jobs:
         echo "📝 Commit: $MSG"
         
     # ============================================
-    # 1. YOUTUBE (با جدیدترین روش)
-    # ============================================
-    - name: Download from YouTube
-      if: contains(steps.msg.outputs.full, 'dl-yt:')
-      run: |
-        URL=$(echo "${{ steps.msg.outputs.full }}" | grep -oP 'dl-yt:\s*\Khttps?://[^\s]+' | head -1)
-        URL=$(echo "$URL" | sed 's/(mp3)//g' | sed 's/(mp4)//g' | xargs)
-        echo "🎬 YouTube: $URL"
-        
-        cd downloads/youtube
-        
-        if [[ "${{ steps.msg.outputs.full }}" == *"(mp3)"* ]]; then
-          echo "🎵 Downloading audio..."
-          yt-dlp -x --audio-format mp3 --audio-quality 2 --no-playlist --retries 5 \
-            --extractor-args "youtube:player-client=default,tv" \
-            "$URL"
-        else
-          echo "🎥 Downloading video..."
-          yt-dlp -f "worst[ext=mp4]" --no-playlist --retries 5 \
-            --extractor-args "youtube:player-client=default,tv" \
-            "$URL"
-        fi
-        
-        cd ../..
-        echo "✅ YouTube done"
-        
-    # ============================================
-    # 2. INSTAGRAM
+    # 1. INSTAGRAM
     # ============================================
     - name: Download from Instagram
       if: contains(steps.msg.outputs.full, 'dl-ig:')
       run: |
-        URL=$(echo "${{ steps.msg.outputs.full }}" | grep -oP 'dl-ig:\s*\Khttps?://[^\s]+' | head -1)
+        URL=$(echo "${{ steps.msg.outputs.full }}" | grep -o 'dl-ig: [^ ]*' | cut -d' ' -f2)
         echo "📸 Instagram: $URL"
-        
         cd downloads/instagram
-        yt-dlp --no-playlist --retries 5 "$URL"
+        yt-dlp --no-playlist "$URL"
         cd ../..
         echo "✅ Instagram done"
         
     # ============================================
-    # 3. GITHUB RELEASE
+    # 2. GITHUB RELEASE (با مدیریت فایل‌های حجیم)
     # ============================================
     - name: Download from GitHub
       if: contains(steps.msg.outputs.full, 'dl-gh:')
       run: |
-        URL=$(echo "${{ steps.msg.outputs.full }}" | grep -oP 'dl-gh:\s*\Khttps?://[^\s]+' | head -1)
+        URL=$(echo "${{ steps.msg.outputs.full }}" | grep -o 'dl-gh: [^ ]*' | cut -d' ' -f2)
         echo "🐙 GitHub: $URL"
-        
+        mkdir -p downloads/github
         cd downloads/github
-        curl -L -O --retry 5 --retry-delay 2 --fail-with-body "$URL"
+        
+        curl -L -O \
+          --retry 5 \
+          --retry-delay 2 \
+          --max-time 600 \
+          --keepalive-time 60 \
+          --continue-at - \
+          "$URL"
+        
+        if [ $? -eq 0 ]; then
+          echo "✅ GitHub download successful"
+        else
+          echo "❌ GitHub download failed"
+          exit 1
+        fi
+        
         cd ../..
-        echo "✅ GitHub done"
         
     # ============================================
-    # 4. DIRECT LINK
+    # 3. DIRECT LINK (هر سایت دیگر)
     # ============================================
     - name: Download direct link
-      if: contains(steps.msg.outputs.full, 'dl:') && !contains(steps.msg.outputs.full, 'dl-yt:') && !contains(steps.msg.outputs.full, 'dl-ig:') && !contains(steps.msg.outputs.full, 'dl-gh:')
+      if: contains(steps.msg.outputs.full, 'dl:') && !contains(steps.msg.outputs.full, 'dl-ig:') && !contains(steps.msg.outputs.full, 'dl-gh:')
       run: |
-        URL=$(echo "${{ steps.msg.outputs.full }}" | grep -oP 'dl:\s*\Khttps?://[^\s]+' | head -1)
+        URL=$(echo "${{ steps.msg.outputs.full }}" | grep -o 'dl: [^ ]*' | cut -d' ' -f2)
         echo "📁 Direct: $URL"
-        
+        mkdir -p downloads/direct
         cd downloads/direct
         FILENAME=$(basename "$URL" | cut -d '?' -f1)
         [ -z "$FILENAME" ] && FILENAME="file_$(date +%H%M%S)"
         
-        curl -L -o "$FILENAME" --retry 5 --retry-delay 2 --connect-timeout 30 --fail-with-body "$URL"
+        curl -L -o "$FILENAME" \
+          --retry 5 \
+          --retry-delay 2 \
+          --max-time 600 \
+          --keepalive-time 60 \
+          "$URL"
+        
         cd ../..
         echo "✅ Direct done"
         
     # ============================================
-    # 5. STOP
+    # 4. STOP COMMAND
     # ============================================
     - name: Stop command
       if: contains(steps.msg.outputs.full, 'dl-stop')
       run: |
-        echo "🛑 Emergency stop"
+        echo "🛑 Emergency stop activated"
         exit 0
         
     # ============================================
-    # 6. گام مهم: نمایش و Commit فایل‌ها
+    # 5. SHOW RESULTS
     # ============================================
-    - name: List downloaded files
+    - name: Show results
       run: |
         echo ""
         echo "=========================================="
@@ -143,19 +131,12 @@ jobs:
         echo "=========================================="
         
     # ============================================
-    # 7. Commit و Push (مهم!)
+    # 6. COMMIT FILES
     # ============================================
-    - name: Commit and push files
+    - name: Commit files
       run: |
-        git config user.name "MRH Downloader Bot"
-        git config user.email "mrh-bot@downloader.local"
-        
-        # بررسی وجود فایل‌ها
-        if [ -d downloads ] && [ "$(ls -A downloads 2>/dev/null)" ]; then
-          git add downloads/
-          git commit -m "MRH: Add downloaded files [skip ci]" || echo "No changes to commit"
-          git push
-          echo "✅ Files committed and pushed to repository"
-        else
-          echo "⚠️ No files to commit"
-        fi
+        git config user.name "MRH Bot"
+        git config user.email "bot@local"
+        git add downloads/ || true
+        git diff --staged --quiet || git commit -m "MRH: Downloads [skip ci]"
+        git push || true
